@@ -1,7 +1,6 @@
 package expression;
 
-import java.util.Map;
-import java.util.Arrays;
+import java.util.*;
 
 public abstract class BinaryOperation extends Operation {
     protected final Expression[] args;
@@ -48,6 +47,18 @@ public abstract class BinaryOperation extends Operation {
             result[i] = args[i].evaluate(map);
         }
         return apply(result);
+    }
+
+    @Override
+    public String[] getVariableList() {
+        Set<String> list = new HashSet<>();
+        for (Expression expr : args) {
+            Collections.addAll(list, expr.getVariableList());
+        }
+        String[] arr = new String[list.size()];
+        list.toArray(arr);
+        Arrays.sort(arr);
+        return arr;
     }
 
     @Override

@@ -79,4 +79,9 @@ public class Literal extends Expression {
     public Expression disjunctiveNormalForm() {
         return this;
     }
+
+    @Override
+    public String[] getVariableList() {
+        return new String[]{};
+    }
 }

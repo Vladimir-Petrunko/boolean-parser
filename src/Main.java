@@ -11,8 +11,8 @@ public class Main {
             System.out.println("Initial: " + expression);
             System.out.println("CNF: " + expression.conjunctiveNormalForm());
             System.out.println("DNF: " + expression.disjunctiveNormalForm());
-            System.out.println(expression.isIdenticalTo(expression.conjunctiveNormalForm(), new String[]{"x", "y", "z", "a", "b"}));
-            System.out.println(expression.isIdenticalTo(expression.disjunctiveNormalForm(), new String[]{"x", "y", "z", "a", "b"}));
+            System.out.println("F CNF: " + expression.fullConjunctiveNormalForm());
+            System.out.println("F DNF: " + expression.fullDisjunctiveNormalForm());
         }
     }
 }

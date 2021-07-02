@@ -35,6 +35,11 @@ public abstract class UnaryOperation extends Operation {
     }
 
     @Override
+    public String[] getVariableList() {
+        return operand.getVariableList();
+    }
+
+    @Override
     public String toString() {
         return String.format("%s(%s)", operator, operand.toString());
     }

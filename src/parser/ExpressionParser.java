@@ -1,9 +1,12 @@
 package parser;
 
-import expression.*;
+import expression.Expression;
+import expression.And;
+import expression.Or;
+import expression.Not;
+import expression.Variable;
+import expression.Literal;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Stack;
 
 public class ExpressionParser extends BaseParser implements Parser {
@@ -11,16 +14,29 @@ public class ExpressionParser extends BaseParser implements Parser {
         super();
     }
 
+    /**
+     * Returns an expression obtained by applying a binary operator to two arguments.
+     *
+     * @param first the first argument
+     * @param operator the symbol of the operator to be applied
+     * @param second the second argument
+     * @return the resulting expression
+     */
     private Expression apply(Expression first, Character operator, Expression second) {
         if (operator == '&') {
             return new And(first, second);
         } else if (operator == '|') {
             return new Or(first, second);
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("unrecognized operator " + operator);
         }
     }
 
+    /**
+     * Parses a variable name starting from the current position and returns a created {@code Variable} with this name
+     *
+     * @return the next variable in the source, as described above
+     */
     private Variable parseVariable() {
         StringBuilder builder = new StringBuilder();
         while (isDigit() || isLetter()) {
@@ -31,6 +47,11 @@ public class ExpressionParser extends BaseParser implements Parser {
         return new Variable(builder.toString());
     }
 
+    /**
+     * Parses a literal value starting from the current position and returns a created {@code Literal} with this value
+     *
+     * @return the next literal in the source, as described above
+     */
     private Literal parseLiteral() {
         if (test('1')) {
             nextChar();
@@ -41,6 +62,11 @@ public class ExpressionParser extends BaseParser implements Parser {
         }
     }
 
+    /**
+     * Parses an operator symbol starting from the current position and returns it.
+     *
+     * @return the next operator symbol in the source
+     */
     private char parseOperator() {
         skipWhitespace();
         char op = getCurrentChar();
@@ -48,6 +74,11 @@ public class ExpressionParser extends BaseParser implements Parser {
         return op;
     }
 
+    /**
+     * Parses an operand starting from the current position and returns it.
+     *
+     * @return the next operand in the source
+     */
     private Expression parseOperand() {
         skipWhitespace();
         if (test('0') || test('1')) {
@@ -63,6 +94,11 @@ public class ExpressionParser extends BaseParser implements Parser {
         }
     }
 
+    /**
+     * Parses an expression starting from the source and returns it.
+     *
+     * @return the next expression in the source
+     */
     private Expression parseExpression() {
         Stack<Expression> operands = new Stack<>();
         Stack<Character> operators = new Stack<>();

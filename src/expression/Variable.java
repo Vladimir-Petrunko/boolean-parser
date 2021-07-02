@@ -62,4 +62,9 @@ public class Variable extends Expression {
     public Expression disjunctiveNormalForm() {
         return this;
     }
+
+    @Override
+    public String[] getVariableList() {
+        return new String[]{name};
+    }
 }
