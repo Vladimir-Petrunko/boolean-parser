@@ -8,11 +8,19 @@ public class Main {
         while (true) {
             String s = in.nextLine();
             Expression expression = parser.parse(s);
+            Expression cnf = expression.conjunctiveNormalForm();
+            Expression dnf = expression.disjunctiveNormalForm();
+            Expression f_cnf = expression.fullConjunctiveNormalForm();
+            Expression f_dnf = expression.fullDisjunctiveNormalForm();
             System.out.println("Initial: " + expression);
-            System.out.println("CNF: " + expression.conjunctiveNormalForm());
-            System.out.println("DNF: " + expression.disjunctiveNormalForm());
-            System.out.println("F CNF: " + expression.fullConjunctiveNormalForm());
-            System.out.println("F DNF: " + expression.fullDisjunctiveNormalForm());
+            System.out.println("CNF: " + cnf);
+            System.out.println("DNF: " + dnf);
+            System.out.println("F CNF: " + f_cnf);
+            System.out.println("F DNF: " + f_dnf);
+            System.out.println(cnf.isIdenticalTo(expression));
+            System.out.println(dnf.isIdenticalTo(expression));
+            System.out.println(f_cnf.isIdenticalTo(expression));
+            System.out.println(f_dnf.isIdenticalTo(expression));
         }
     }
 }

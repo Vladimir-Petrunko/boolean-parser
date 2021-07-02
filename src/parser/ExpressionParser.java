@@ -1,11 +1,6 @@
 package parser;
 
-import expression.Expression;
-import expression.And;
-import expression.Or;
-import expression.Not;
-import expression.Variable;
-import expression.Literal;
+import expression.*;
 
 import java.util.Stack;
 
@@ -22,14 +17,13 @@ public class ExpressionParser extends BaseParser implements Parser {
      * @param second the second argument
      * @return the resulting expression
      */
-    private Expression apply(Expression first, Character operator, Expression second) {
-        if (operator == '&') {
-            return new And(first, second);
-        } else if (operator == '|') {
-            return new Or(first, second);
-        } else {
-            throw new UnsupportedOperationException("unrecognized operator " + operator);
-        }
+    private Expression apply(Expression first, String operator, Expression second) {
+        return switch (operator) {
+            case "&" -> new And(first, second);
+            case "|" -> new Or(first, second);
+            case "^" -> new Xor(first, second);
+            default -> throw new UnsupportedOperationException("unrecognized operator " + operator);
+        };
     }
 
     /**
@@ -51,14 +45,15 @@ public class ExpressionParser extends BaseParser implements Parser {
      * Parses a literal value starting from the current position and returns a created {@code Literal} with this value
      *
      * @return the next literal in the source, as described above
+     * @throws ParsingException if unable to parse a valid literal
      */
     private Literal parseLiteral() {
-        if (test('1')) {
+        if (test('0') || test('1')) {
+            int value = getCurrentChar() - '0';
             nextChar();
-            return Literal.TRUE;
+            return new Literal(value);
         } else {
-            nextChar();
-            return Literal.FALSE;
+            throw new ParsingException(getPosition(), "unrecognized literal");
         }
     }
 
@@ -66,18 +61,24 @@ public class ExpressionParser extends BaseParser implements Parser {
      * Parses an operator symbol starting from the current position and returns it.
      *
      * @return the next operator symbol in the source
+     * @throws ParsingException if unable to parse a valid operator
      */
-    private char parseOperator() {
+    private String parseOperator() {
         skipWhitespace();
-        char op = getCurrentChar();
-        nextChar();
-        return op;
+        if (test('&') || test('^') || test('|')) {
+            char op = getCurrentChar();
+            nextChar();
+            return op + "";
+        } else {
+            throw new ParsingException(getPosition(), "unrecognized operator");
+        }
     }
 
     /**
      * Parses an operand starting from the current position and returns it.
      *
      * @return the next operand in the source
+     * @throws ParsingException if unable to parse a valid operand
      */
     private Expression parseOperand() {
         skipWhitespace();
@@ -89,8 +90,10 @@ public class ExpressionParser extends BaseParser implements Parser {
         } else if (test('~')) {
             nextChar();
             return new Not(parseOperand());
-        } else {
+        } else if (isLetter()) {
             return parseVariable();
+        } else {
+            throw new ParsingException(getPosition(), "unable to parse operand");
         }
     }
 
@@ -98,10 +101,11 @@ public class ExpressionParser extends BaseParser implements Parser {
      * Parses an expression starting from the source and returns it.
      *
      * @return the next expression in the source
+     * @throws ParsingException if unable to parse a valid expression
      */
     private Expression parseExpression() {
         Stack<Expression> operands = new Stack<>();
-        Stack<Character> operators = new Stack<>();
+        Stack<String> operators = new Stack<>();
         operands.push(parseOperand());
         while (!eof()) {
             skipWhitespace();
@@ -109,8 +113,9 @@ public class ExpressionParser extends BaseParser implements Parser {
                 nextChar();
                 break;
             }
-            char op = parseOperator();
-            while (!operators.empty() && operators.peek() == '&' && op == '|') {
+            String op = parseOperator();
+            int currentPriority = PriorityManager.getPriority(op);
+            while (!operators.empty() && PriorityManager.getPriority(operators.peek()) > currentPriority) {
                 Expression second = operands.pop();
                 Expression first = operands.pop();
                 operands.push(apply(first, operators.pop(), second));
