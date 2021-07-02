@@ -12,6 +12,16 @@ public abstract class UnaryOperation extends Operation {
         this.operand = operand;
     }
 
+    @Override
+    public int argCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression[] getArgs() {
+        return new Expression[]{operand};
+    }
+
     protected abstract boolean apply(boolean bool);
 
     @Override

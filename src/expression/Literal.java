@@ -21,6 +21,16 @@ public class Literal extends Expression {
         }
     }
 
+    @Override
+    public int argCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression[] getArgs() {
+        return new Expression[]{this};
+    }
+
     public boolean getValue() {
         return value;
     }
@@ -48,11 +58,6 @@ public class Literal extends Expression {
     @Override
     public int hashCode() {
         return value ? 1 : 0;
-    }
-
-    @Override
-    public Expression canonical() {
-        return this;
     }
 
     @Override

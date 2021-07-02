@@ -2,10 +2,6 @@ package expression;
 
 import utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 public class Or extends BinaryOperation {
     public Or(Expression... args) {
         super("|", args);
@@ -29,33 +25,25 @@ public class Or extends BinaryOperation {
         } else if (right instanceof Literal) {
             return right.equals(Literal.FALSE) ? left : Literal.TRUE;
         } else if (left instanceof Variable && right instanceof Variable) {
-            return new And(left, right);
+            return new Or(left, right);
         } else {
-            if (left instanceof Variable) left = new And(left, Literal.TRUE);
-            if (right instanceof Variable) right = new And(right, Literal.TRUE);
-            And a = (And) left;
-            And b = (And) right;
-            Expression[] newArgs = new Expression[a.argCount() * b.argCount()];
+            int lc = left instanceof Or ? 1 : left.argCount();
+            int rc = right instanceof Or ? 1 : right.argCount();
+            Expression[] newArgs = new Expression[lc * rc];
+            if (left instanceof Or) left = new And(left, Literal.TRUE);
+            if (right instanceof Or) right = new And(right, Literal.TRUE);
             int current = 0;
-            for (int i = 0; i < a.argCount(); i++) {
-                for (int j = 0; j < b.argCount(); j++) {
-                    if (a.get(i).equals(Literal.FALSE)) {
-                        newArgs[current++] = b.get(j);
-                    } else if (b.get(j).equals(Literal.FALSE)) {
-                        newArgs[current++] = a.get(i);
-                    } else {
-                        Or or = new Or(a.get(i), b.get(j));
-                        newArgs[current++] = new Or(Utils.expandOr(or.getArgs()));
+            for (int i = 0; i < left.argCount(); i++) {
+                for (int j = 0; j < right.argCount(); j++) {
+                    Or or = new Or(left.get(i), right.get(j));
+                    Expression exp = new Or(Utils.removeDuplicates(Utils.expandOr(or.getArgs()), Literal.TRUE));
+                    if (!exp.get(0).equals(Literal.TRUE)) {
+                        newArgs[current++] = exp;
                     }
                 }
             }
-            return new And(newArgs);
+            return newArgs.length == 1 ? newArgs[0] : new And(newArgs);
         }
-    }
-
-    @Override
-    public Expression canonical() {
-        return this;
     }
 
     @Override

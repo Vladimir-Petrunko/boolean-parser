@@ -14,6 +14,14 @@ public abstract class Expression implements Simplifiable {
     @Override
     public abstract boolean equals(Object obj);
 
+    public abstract int argCount();
+
+    public abstract Expression[] getArgs();
+
+    public Expression get(int index) {
+        return getArgs()[index];
+    }
+
     public boolean[] truthTable(String[] variables) {
         boolean[] table = new boolean[1 << variables.length];
         for (int i = 0; i < table.length; i++) {

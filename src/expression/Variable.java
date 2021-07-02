@@ -11,6 +11,16 @@ public class Variable extends Expression {
     }
 
     @Override
+    public int argCount() {
+        return 1;
+    }
+
+    @Override
+    public Expression[] getArgs() {
+        return new Expression[]{this};
+    }
+
+    @Override
     public boolean evaluate(Map<String, Boolean> map) {
         Boolean result = map.get(name);
         if (result == null) {
@@ -41,11 +51,6 @@ public class Variable extends Expression {
     @Override
     public int hashCode() {
         return name.hashCode();
-    }
-
-    @Override
-    public Expression canonical() {
-        return this;
     }
 
     @Override

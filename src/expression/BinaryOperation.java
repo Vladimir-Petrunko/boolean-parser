@@ -14,16 +14,14 @@ public abstract class BinaryOperation extends Operation {
 
     protected abstract boolean apply(boolean... args);
 
+    @Override
     public Expression[] getArgs() {
         return args;
     }
 
+    @Override
     public int argCount() {
         return args.length;
-    }
-
-    public Expression get(int index) {
-        return args[index];
     }
 
     @Override

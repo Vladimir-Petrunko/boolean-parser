@@ -27,31 +27,23 @@ public class And extends BinaryOperation {
         } else if (left instanceof Variable && right instanceof Variable) {
             return new And(left, right);
         } else {
-            if (left instanceof Variable) left = new Or(left, Literal.FALSE);
-            if (right instanceof Variable) right = new Or(right, Literal.FALSE);
-            Or a = (Or) left;
-            Or b = (Or) right;
-            Expression[] newArgs = new Expression[a.argCount() * b.argCount()];
+            int lc = left instanceof And ? 1 : left.argCount();
+            int rc = right instanceof And ? 1 : right.argCount();
+            Expression[] newArgs = new Expression[lc * rc];
+            if (left instanceof And) left = new Or(left, Literal.FALSE);
+            if (right instanceof And) right = new Or(right, Literal.FALSE);
             int current = 0;
-            for (int i = 0; i < a.argCount(); i++) {
-                for (int j = 0; j < b.argCount(); j++) {
-                    if (a.get(i).equals(Literal.FALSE)) {
-                        newArgs[current++] = b.get(j);
-                    } else if (b.get(j).equals(Literal.FALSE)) {
-                        newArgs[current++] = a.get(i);
-                    } else {
-                        And and = new And(a.get(i), b.get(j));
-                        newArgs[current++] = new And(Utils.expandAnd(and.getArgs()));
+            for (int i = 0; i < left.argCount(); i++) {
+                for (int j = 0; j < right.argCount(); j++) {
+                    And and = new And(left.get(i), right.get(j));
+                    Expression exp = new And(Utils.removeDuplicates(Utils.expandAnd(and.getArgs()), Literal.TRUE));
+                    if (!exp.get(0).equals(Literal.FALSE)) {
+                        newArgs[current++] = exp;
                     }
                 }
             }
-            return new Or(newArgs);
+            return newArgs.length == 1 ? newArgs[0] : new Or(newArgs);
         }
-    }
-
-    @Override
-    public Expression canonical() {
-        return this;
     }
 
     @Override

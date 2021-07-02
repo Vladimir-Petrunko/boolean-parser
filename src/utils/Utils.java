@@ -25,14 +25,15 @@ public class Utils {
         }
         Expression[] answer = new Expression[unique.size()];
         unique.toArray(answer);
-        return answer;
+        return answer.length == 0 ? new Expression[]{neutral} : answer;
     }
 
     public static Expression[] expandAnd(Expression[] args) {
         List<Expression> list = new ArrayList<>();
         for (Expression arg : args) {
+            arg = arg.conjunctiveNormalForm();
             if (arg instanceof And) {
-                Collections.addAll(list, ((And) arg).getArgs());
+                Collections.addAll(list, arg.getArgs());
             } else if (arg.equals(Literal.FALSE)) {
                 return new Expression[]{Literal.FALSE};
             } else {
@@ -41,14 +42,15 @@ public class Utils {
         }
         Expression[] answer = new Expression[list.size()];
         list.toArray(answer);
-        return answer;
+        return answer.length == 0 ? new Expression[]{Literal.TRUE} : answer;
     }
 
     public static Expression[] expandOr(Expression[] args) {
         List<Expression> list = new ArrayList<>();
         for (Expression arg : args) {
+            arg = arg.disjunctiveNormalForm();
             if (arg instanceof Or) {
-                Collections.addAll(list, ((Or) arg).getArgs());
+                Collections.addAll(list, arg.getArgs());
             } else if (arg.equals(Literal.TRUE)) {
                 return new Expression[]{Literal.TRUE};
             } else {
@@ -57,6 +59,6 @@ public class Utils {
         }
         Expression[] answer = new Expression[list.size()];
         list.toArray(answer);
-        return answer;
+        return answer.length == 0 ? new Expression[]{Literal.FALSE} : answer;
     }
 }
