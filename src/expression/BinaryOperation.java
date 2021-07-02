@@ -7,11 +7,23 @@ public abstract class BinaryOperation extends Operation {
     protected final Expression[] args;
     protected final String operator;
 
+    /**
+     * Constructor of {@code BinaryOperation}.
+     *
+     * @param operator the string representation of the operator
+     * @param args the argument list
+     */
     public BinaryOperation(String operator, Expression... args) {
         this.args = args;
         this.operator = operator;
     }
 
+    /**
+     * Returns the result of this operation when applied on an arbitrary-length argument list.
+     *
+     * @param args the argument list
+     * @return the result of this operation when applied on {@code args}.
+     */
     protected abstract boolean apply(boolean... args);
 
     @Override

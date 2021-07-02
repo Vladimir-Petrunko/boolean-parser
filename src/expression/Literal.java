@@ -13,6 +13,13 @@ public class Literal extends Expression {
         this.value = value;
     }
 
+    /**
+     * Constructor from an {@code int}.<br><br>
+     *
+     * It is assumed that 0 represents {@code false} and 1 represents {@code true}.
+     *
+     * @param value the {@code int} value of the literal, as described above.
+     */
     public Literal(int value) {
         if (value == 0 || value == 1) {
             this.value = (value == 1);
@@ -31,6 +38,9 @@ public class Literal extends Expression {
         return new Expression[]{this};
     }
 
+    /**
+     * @return the boolean value of this literal
+     */
     public boolean getValue() {
         return value;
     }

@@ -9,32 +9,45 @@ import expression.Or;
 import expression.Literal;
 
 public class Utils {
-    public static Expression[] removeDuplicates(Expression[] args, Expression neutral) {
+    /**
+     * Removes duplicate occurrences of expressions from an array. That is, leaves each expression at most once.
+     *
+     * @param args the input array
+     * @return the processed array
+     */
+    public static Expression[] removeDuplicates(Expression[] args) {
         for (int i = 0; i < args.length; i++) {
             for (int j = i + 1; j < args.length; j++) {
-                if (args[i].equals(args[j])) {
-                    args[j] = neutral;
+                if (args[i] != null && args[i].equals(args[j])) {
+                    args[j] = null;
                 }
             }
         }
         List<Expression> unique = new ArrayList<>();
         for (Expression arg : args) {
-            if (!arg.equals(neutral)) {
+            if (arg != null) {
                 unique.add(arg);
             }
         }
         Expression[] answer = new Expression[unique.size()];
         unique.toArray(answer);
-        return answer.length == 0 ? new Expression[]{neutral} : answer;
+        return answer;
     }
 
+    /**
+     * Simplify an AND clause by bringing together all other AND'ed expressions and simplifying literals.
+     *
+     * @param args an array that represents the arguments of the initial AND clause
+     * @return an array that represents the arguments of the processed AND clause
+     */
     public static Expression[] expandAnd(Expression[] args) {
         List<Expression> list = new ArrayList<>();
         for (Expression arg : args) {
-            arg = arg.conjunctiveNormalForm();
             if (arg instanceof And) {
-                Collections.addAll(list, arg.getArgs());
+                // Recursively simplify nested expressions first
+                Collections.addAll(list, expandAnd(arg.getArgs()));
             } else if (arg.equals(Literal.FALSE)) {
+                // Short circuiting -- entire expression is false
                 return new Expression[]{Literal.FALSE};
             } else {
                 list.add(arg);
@@ -45,13 +58,20 @@ public class Utils {
         return answer.length == 0 ? new Expression[]{Literal.TRUE} : answer;
     }
 
+    /**
+     * Simplify an OR clause by bringing together all other OR'ed expressions and simplifying literals.
+     *
+     * @param args an array that represents the arguments of the initial OR clause
+     * @return an array that represents the arguments of the processed OR clause
+     */
     public static Expression[] expandOr(Expression[] args) {
         List<Expression> list = new ArrayList<>();
         for (Expression arg : args) {
-            arg = arg.disjunctiveNormalForm();
             if (arg instanceof Or) {
-                Collections.addAll(list, arg.getArgs());
+                // Recursively simplify nested expressions first
+                Collections.addAll(list, expandOr(arg.getArgs()));
             } else if (arg.equals(Literal.TRUE)) {
+                // Short circuiting -- entire expression is false
                 return new Expression[]{Literal.TRUE};
             } else {
                 list.add(arg);
