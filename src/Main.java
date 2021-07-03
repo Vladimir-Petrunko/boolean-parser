@@ -17,10 +17,10 @@ public class Main {
             System.out.println("DNF: " + dnf);
             System.out.println("F CNF: " + f_cnf);
             System.out.println("F DNF: " + f_dnf);
-            System.out.println(cnf.isIdenticalTo(expression));
-            System.out.println(dnf.isIdenticalTo(expression));
-            System.out.println(f_cnf.isIdenticalTo(expression));
-            System.out.println(f_dnf.isIdenticalTo(expression));
+            System.out.println(cnf.isEquivalentTo(expression));
+            System.out.println(dnf.isEquivalentTo(expression));
+            System.out.println(f_cnf.isEquivalentTo(expression));
+            System.out.println(f_dnf.isEquivalentTo(expression));
         }
     }
 }

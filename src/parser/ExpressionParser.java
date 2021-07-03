@@ -4,6 +4,7 @@ import expression.*;
 
 import java.util.Stack;
 
+// TODO: add complete error handling (for example, parenthesis balance)
 public class ExpressionParser extends BaseParser implements Parser {
     public ExpressionParser() {
         super();

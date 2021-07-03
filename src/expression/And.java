@@ -32,22 +32,14 @@ public class And extends BinaryOperation {
             return left.equals(Literal.TRUE) ? right : Literal.FALSE;
         } else if (right instanceof Literal) {
             return right.equals(Literal.TRUE) ? left : Literal.FALSE;
-        } else if (left.argCount() == 1 && right.argCount() == 1) {
-            return new And(left, right);
         } else {
-            int lc = left instanceof And ? 1 : left.argCount();
-            int rc = right instanceof And ? 1 : right.argCount();
-            Expression[] newArgs = new Expression[lc * rc];
-            if (left instanceof And || left instanceof Not) left = new Or(left, Literal.FALSE);
-            if (right instanceof And || right instanceof Not) right = new Or(right, Literal.FALSE);
-            int current = 0;
+            Expression[] newArgs = new Expression[left.argCount() * right.argCount()];
+            if (left instanceof And || left instanceof Not) left = new Or(left);
+            if (right instanceof And || right instanceof Not) right = new Or(right);
+            // Expand parentheses
             for (int i = 0; i < left.argCount(); i++) {
                 for (int j = 0; j < right.argCount(); j++) {
-                    And and = new And(left.get(i), right.get(j));
-                    Expression exp = new And(Utils.removeDuplicates(Utils.expandAnd(and.getArgs())));
-                    if (!exp.get(0).equals(Literal.FALSE)) {
-                        newArgs[current++] = exp;
-                    }
+                    newArgs[i * right.argCount() + j] = new And(left.get(i), right.get(j));
                 }
             }
             return newArgs.length == 1 ? newArgs[0] : new Or(newArgs);

@@ -84,7 +84,7 @@ public abstract class Expression implements Simplifiable {
      * @param other a {@code Expression}
      * @return {@code true} if this expression has the same truth table as {@code other}, or {@code false} otherwise
      */
-    public boolean isIdenticalTo(Expression other) {
+    public boolean isEquivalentTo(Expression other) {
         boolean[] thisTable = truthTable();
         boolean[] otherTable = other.truthTable();
         return Arrays.equals(thisTable, otherTable);
