@@ -2,9 +2,33 @@ package expression;
 
 import utils.Utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class And extends BinaryOperation {
     public And(Expression... args) {
         super("&", args);
+    }
+
+    private static Expression[] merge(Expression... args) {
+        List<Expression> list = new ArrayList<>();
+        for (Expression arg : args) {
+            arg = arg.conjunctiveNormalForm();
+            if (arg instanceof And) {
+                Collections.addAll(list, And.merge(arg.getArgs()));
+            } else if (arg.equals(Literal.FALSE)) {
+                list.clear();
+                list.add(Literal.FALSE);
+                break;
+            } else {
+                list.add(arg);
+            }
+        }
+        Expression[] arr = new Expression[list.size()];
+        list.toArray(arr);
+        arr = Utils.removeDuplicates(arr, And.class);
+        return arr;
     }
 
     @Override
@@ -33,13 +57,14 @@ public class And extends BinaryOperation {
         } else if (right instanceof Literal) {
             return right.equals(Literal.TRUE) ? left : Literal.FALSE;
         } else {
-            Expression[] newArgs = new Expression[left.argCount() * right.argCount()];
-            if (left instanceof And || left instanceof Not) left = new Or(left);
-            if (right instanceof And || right instanceof Not) right = new Or(right);
+            Expression[] leftArgs = (left instanceof Or) ? left.getArgs() : new Expression[]{left};
+            Expression[] rightArgs = (right instanceof Or) ? right.getArgs() : new Expression[]{right};
+            Expression[] newArgs = new Expression[leftArgs.length * rightArgs.length];
             // Expand parentheses
-            for (int i = 0; i < left.argCount(); i++) {
-                for (int j = 0; j < right.argCount(); j++) {
-                    newArgs[i * right.argCount() + j] = new And(left.get(i), right.get(j));
+            for (int i = 0; i < leftArgs.length; i++) {
+                for (int j = 0; j < rightArgs.length; j++) {
+                    Expression[] arr = And.merge(leftArgs[i], rightArgs[j]);
+                    newArgs[i * rightArgs.length + j] = (arr.length == 1) ? arr[0] : new And(arr);
                 }
             }
             return newArgs.length == 1 ? newArgs[0] : new Or(newArgs);
@@ -48,8 +73,7 @@ public class And extends BinaryOperation {
 
     @Override
     public Expression conjunctiveNormalForm() {
-        Expression[] args = Utils.expandAnd(this.args);
-        args = Utils.removeDuplicates(args);
+        Expression[] args = merge(this.args);
         return args.length == 1 ? args[0] : new And(args);
     }
 

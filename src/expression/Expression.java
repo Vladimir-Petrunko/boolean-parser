@@ -1,5 +1,7 @@
 package expression;
 
+import utils.Category;
+
 import java.util.*;
 
 public abstract class Expression implements Simplifiable {
@@ -11,6 +13,25 @@ public abstract class Expression implements Simplifiable {
      */
     public abstract boolean evaluate(Map<String, Boolean> map);
 
+    /**
+     * Evaluates a boolean expression.
+     *
+     * @param argList a list of arguments (in lexicographical order of variables)
+     * @return the value of this expression
+     */
+    public boolean evaluate(boolean[] argList) {
+        String[] varList = getVariableList();
+        if (argList.length != varList.length) {
+            throw new IllegalArgumentException("length of argList (" + argList.length +
+                    ") does not match variable count (" + varList.length + ").");
+        }
+        Map<String, Boolean> map = new HashMap<>();
+        for (int i = 0; i < argList.length; i++) {
+            map.put(varList[i], argList[i]);
+        }
+        return evaluate(map);
+    }
+
     @Override
     public abstract String toString();
 
@@ -18,8 +39,8 @@ public abstract class Expression implements Simplifiable {
     public abstract boolean equals(Object obj);
 
     /**
-     * Returns the arity (i.e. the number of arguments) of this expression. If it is a literal or variable, then the
-     * number of arguments is considered to be equal to 1.
+     * Returns the arity (i.e. the number of arguments) of this expression. If it is a literal, then the number of
+     * arguments is considered to be 0.
      *
      * @return the arity of this expression
      */
@@ -153,21 +174,164 @@ public abstract class Expression implements Simplifiable {
                 }
                 Expression[] arr  = new Expression[list.size()];
                 list.toArray(arr);
-                if (arr.length == 1) {
-                    args.add(arr[0]);
-                } else {
-                    args.add(new And(arr));
-                }
+                args.add(arr.length == 1 ? arr[0] : new And(arr));
             }
+        }
+        if (args.isEmpty()) {
+            args.add(Literal.FALSE);
         }
         Expression[] arr = new Expression[args.size()];
         args.toArray(arr);
-        if (arr.length == 0) {
-            return Literal.FALSE;
-        } else if (arr.length == 1) {
-            return arr[0];
-        } else {
-            return new Or(arr);
+        return arr.length == 1 ? arr[0] : new Or(arr);
+    }
+
+    @Override
+    public Expression zhegalkinPolynomial() {
+        boolean[] table = truthTable();
+        boolean[] coeff = new boolean[table.length];
+        String[] variables = getVariableList();
+        List<Expression> args = new ArrayList<>();
+        for (int i = 0; i < table.length; i++) {
+            boolean tot = false;
+            for (int j = 0; j < i; j++) {
+                if ((j & i) == j) {
+                    tot ^= coeff[j];
+                }
+            }
+            coeff[i] = tot ^ table[i];
+            if (coeff[i]) {
+                List<Expression> list = new ArrayList<>();
+                for (int k = 0; k < variables.length; k++) {
+                    if ((i & (1 << k)) != 0) {
+                        list.add(new Variable(variables[k]));
+                    }
+                }
+                if (list.isEmpty()) {
+                    list.add(Literal.TRUE);
+                }
+                Expression[] arr = new Expression[list.size()];
+                list.toArray(arr);
+                args.add(arr.length == 1 ? arr[0] : new And(arr));
+            }
         }
+        if (args.isEmpty()) {
+            args.add(Literal.FALSE);
+        }
+        Expression[] arr = new Expression[args.size()];
+        args.toArray(arr);
+        return arr.length == 1 ? arr[0] : new Xor(arr);
+    }
+
+    /**
+     * Determines whether this operation satisfies one of the 5 Post completeness categories:<br>
+     * <ul>
+     *     <li>True-preserving</li>
+     *     <li>False-preserving</li>
+     *     <li>Monotonic</li>
+     *     <li>Linear</li>
+     *     <li>Self-dual</li>
+     * </ul>
+     *
+     * @param category the Post completeness category that is to be tested.
+     * @return {@code true} if this operation satisfies the {@code category}, {@code false} otherwise.
+     */
+    public boolean satisfies(Category category) {
+        return switch (category) {
+            case TRUE_PRESERVING -> preservesTrue();
+            case FALSE_PRESERVING -> preservesFalse();
+            case MONOTONIC -> monotonic();
+            case LINEAR -> linear();
+            default -> selfDual();
+        };
+    }
+
+    /**
+     * @return {@code true} if this operation is a true-preserving function, {@code false} otherwise.
+     */
+    public boolean preservesTrue() {
+        boolean[] args = new boolean[argCount()];
+        Arrays.fill(args, true);
+        return evaluate(args);
+    }
+
+    /**
+     * @return {@code true} if this operation is a false-preserving function, {@code false} otherwise.
+     */
+    public boolean preservesFalse() {
+        boolean[] args = new boolean[argCount()];
+        return !evaluate(args);
+    }
+
+    /**
+     * @return {@code true} if this operation is a monotonic function, {@code false} otherwise.
+     */
+    public boolean monotonic() {
+        boolean[] table = truthTable();
+        for (int i = 0; i < table.length; i++) {
+            for (int j = 0; j < argCount(); j++) {
+                int t;
+                if ((j & (1 << i)) == 0) {
+                    t = j + (1 << i);
+                } else {
+                    t = j - (1 << i);
+                }
+                if (table[Math.min(i, t)] && !table[Math.max(i, t)]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return {@code true} if this operation is a linear function, {@code false} otherwise.
+     */
+    public boolean linear() {
+        Expression zh = zhegalkinPolynomial();
+        int cnt = zh.argCount();
+        for (int i = 0; i < cnt; i++) {
+            Expression exp = zh.get(i);
+            if (exp instanceof And) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return {@code true} if this operation is a self-dual function, {@code false} otherwise.
+     */
+    public boolean selfDual() {
+        boolean[] table = truthTable();
+        for (int i = 0, j = table.length - 1; i <= j; i++, j--) {
+            if (table[i] == table[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Determines if a given set of expressions forms a functional basis (by using Post's completeness theorem).
+     *
+     * @param arr an array of {@code Expression}s
+     * @return {@code true} if the given set of expressions represents a basis among the logical functions, {@code
+     *         false} otherwise.
+     */
+    public static boolean isFunctionalBasis(Expression[] arr) {
+        // Boolean variables that represent whether all of the functions met so far belong to a given category
+        boolean tru = true; // True-preserving
+        boolean fal = true; // False-preserving
+        boolean mon = true; // Monotonic
+        boolean lin = true; // Linear
+        boolean sel = true; // Self-dual
+        for (Expression exp : arr) {
+            tru &= exp.preservesTrue();
+            fal &= exp.preservesFalse();
+            mon &= exp.monotonic();
+            lin &= exp.linear();
+            sel &= exp.selfDual();
+        }
+        return !tru && !fal && !mon && !lin && !sel;
     }
 }

@@ -1,10 +1,10 @@
 package expression;
 
 public class BinaryFunction extends BinaryOperation {
-    protected boolean[] truthTable;
+    protected final boolean[] truthTable;
 
-    public BinaryFunction(boolean[] truthTable, String operator, Expression first, Expression second) {
-        super(operator, first, second);
+    public BinaryFunction(boolean[] truthTable, String operator, Expression... args) {
+        super(operator, args);
         if (truthTable.length != 4) {
             throw new IllegalArgumentException("truth table should have length 4");
         }

@@ -46,4 +46,13 @@ public interface Simplifiable {
      * @see #fullConjunctiveNormalForm()
      */
     Expression fullDisjunctiveNormalForm();
+
+    /**
+     * Returns the Zhegalkin polynomial form of this expression.<br><br>
+     *
+     * This method has an exponential <b>worst-case</b> time complexity.
+     *
+     * @return the Zhegalkin polynomial form of this expression
+     */
+    Expression zhegalkinPolynomial();
 }

@@ -14,30 +14,57 @@ public class Not extends UnaryOperation {
 
     @Override
     public Expression conjunctiveNormalForm() {
-        if (operand instanceof Literal) {
-            Literal lit = (Literal) operand;
+        Expression simple = operand.conjunctiveNormalForm();
+        if (simple instanceof Literal) {
+            Literal lit = (Literal) simple;
             return new Literal(!lit.getValue());
-        } else if (operand instanceof And) {
-            And and = (And) operand;
+        } else if (simple instanceof And) {
+            And and = (And) simple;
             Expression[] args = new Expression[and.argCount()];
             for (int i = 0; i < args.length; i++) {
-                args[i] = new Not(and.get(i));
+                args[i] = new Not(and.get(i)).conjunctiveNormalForm();
             }
             return new Or(args);
-        } else if (operand instanceof Or) {
-            Or or = (Or) operand;
+        } else if (simple instanceof Or) {
+            Or or = (Or) simple;
             Expression[] args = new Expression[or.argCount()];
             for (int i = 0; i < args.length; i++) {
-                args[i] = new Not(or.get(i));
+                args[i] = new Not(or.get(i)).conjunctiveNormalForm();
             }
             return new And(args);
+        } else if (simple instanceof Not) {
+            Not not = (Not) simple;
+            return not.operand.conjunctiveNormalForm();
         } else {
-            return this;
+            return new Not(simple);
         }
     }
 
     @Override
     public Expression disjunctiveNormalForm() {
-        return conjunctiveNormalForm();
+        Expression simple = operand.disjunctiveNormalForm();
+        if (simple instanceof Literal) {
+            Literal lit = (Literal) operand;
+            return new Literal(!lit.getValue());
+        } else if (simple instanceof Or) {
+            Or or = (Or) simple;
+            Expression[] args = new Expression[or.argCount()];
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Not(or.get(i)).disjunctiveNormalForm();
+            }
+            return new And(args);
+        } else if (simple instanceof And) {
+            And and = (And) simple;
+            Expression[] args = new Expression[and.argCount()];
+            for (int i = 0; i < args.length; i++) {
+                args[i] = new Not(and.get(i)).disjunctiveNormalForm();
+            }
+            return new Or(args);
+        } else if (simple instanceof Not) {
+            Not not = (Not) simple;
+            return not.operand.disjunctiveNormalForm();
+        } else {
+            return new Not(simple);
+        }
     }
 }

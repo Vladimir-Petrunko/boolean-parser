@@ -40,7 +40,8 @@ public abstract class UnaryOperation extends Operation {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", operator, operand.toString());
+        String pattern = (operand instanceof Operation) ? "%s(%s)" : "%s%s";
+        return String.format(pattern, operator, operand.toString());
     }
 
     @Override
