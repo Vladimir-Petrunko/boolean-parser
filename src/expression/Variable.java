@@ -3,6 +3,10 @@ package expression;
 import java.util.Map;
 
 public class Variable extends Expression {
+    public static final Variable x = new Variable("x");
+    public static final Variable y = new Variable("y");
+    public static final Variable z = new Variable("z");
+
     private final String name;
 
     public Variable(String name) {

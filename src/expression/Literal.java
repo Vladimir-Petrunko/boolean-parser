@@ -29,7 +29,7 @@ public class Literal extends Expression {
 
     @Override
     public int argCount() {
-        return 1;
+        return 0;
     }
 
     @Override
